@@ -1,2 +1,3 @@
-# GD-Punch-clock
-GD-Punch clock
+# SC-Punch-clock
+SC-Punch clock
+
