@@ -14,34 +14,27 @@
     
     <style>
         /**
-         * 主要樣式定義 - 黑暗模式
+         * 主要樣式定義
          * 針對檔案上傳系統的所有UI元素提供專用樣式
          */
         :root {
-            --primary-color: #3a86ff;
-            --primary-hover: #2778f7;
-            --success-color: #00b4a6;
-            --success-hover: #00a090;
-            --danger-color: #ff595e;
-            --danger-hover: #ff3a41;
-            --warning-color: #ffca3a;
-            --light-color: #404650;
-            --lighter-color: #4e5560;
-            --dark-color: #202428;
-            --darker-color: #14171a;
-            --text-color: #e1e2e3;
-            --text-muted: #9ca3af;
-            --border-color: #4b5563;
+            --primary-color: #0d6efd;
+            --success-color: #198754;
+            --danger-color: #dc3545;
+            --warning-color: #ffc107;
+            --light-color: #f8f9fa;
+            --dark-color: #212529;
+            --border-color: #dee2e6;
             --border-radius: 10px;
-            --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            --box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
             --transition-speed: 0.3s;
         }
         
         body {
-            background-color: var(--darker-color);
+            background-color: var(--light-color);
             font-family: 'Microsoft JhengHei', Arial, sans-serif;
             line-height: 1.6;
-            color: var(--text-color);
+            color: var(--dark-color);
             padding-bottom: 50px;
         }
         
@@ -55,7 +48,7 @@
             text-align: center;
             margin-bottom: 30px;
             padding: 20px;
-            background-color: var(--dark-color);
+            background-color: #fff;
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
         }
@@ -67,13 +60,13 @@
         }
         
         .header-section p {
-            color: var(--text-muted);
+            color: #6c757d;
             max-width: 600px;
             margin: 0 auto;
         }
         
         .main-card {
-            background-color: var(--dark-color);
+            background-color: #fff;
             border-radius: var(--border-radius);
             box-shadow: var(--box-shadow);
             padding: 30px;
@@ -82,10 +75,10 @@
         
         .api-config-section {
             padding: 20px;
-            background-color: rgba(58, 134, 255, 0.08);
+            background-color: rgba(13, 110, 253, 0.05);
             border-radius: var(--border-radius);
             margin-bottom: 30px;
-            border: 1px solid rgba(58, 134, 255, 0.2);
+            border: 1px solid rgba(13, 110, 253, 0.2);
         }
         
         .api-config-section h3 {
@@ -112,12 +105,12 @@
         
         .drop-zone.highlight {
             border-color: var(--primary-color);
-            background-color: rgba(58, 134, 255, 0.1);
+            background-color: rgba(13, 110, 253, 0.1);
         }
         
         .drop-zone i.main-icon {
             font-size: 60px;
-            color: var(--text-muted);
+            color: #6c757d;
             margin-bottom: 15px;
             transition: all var(--transition-speed) ease;
         }
@@ -128,12 +121,12 @@
         
         .drop-zone h3 {
             font-size: 22px;
-            color: var(--text-color);
+            color: var(--dark-color);
             margin-bottom: 10px;
         }
         
         .drop-zone p {
-            color: var(--text-muted);
+            color: #6c757d;
             margin-bottom: 20px;
         }
         
@@ -145,7 +138,7 @@
         .file-info-container {
             margin-top: 30px;
             padding: 20px;
-            background-color: var(--light-color);
+            background-color: #f8f9fa;
             border-radius: var(--border-radius);
             border: 1px solid var(--border-color);
             display: none;
@@ -153,7 +146,7 @@
         
         .file-info-container h4 {
             margin-bottom: 15px;
-            color: var(--text-color);
+            color: var(--dark-color);
             display: flex;
             align-items: center;
         }
@@ -171,7 +164,7 @@
         
         .file-info-item {
             padding: 10px;
-            background-color: var(--lighter-color);
+            background-color: #fff;
             border-radius: 8px;
             border: 1px solid var(--border-color);
         }
@@ -179,12 +172,11 @@
         .file-info-item .info-label {
             font-weight: bold;
             margin-bottom: 5px;
-            color: var(--text-muted);
+            color: #495057;
         }
         
         .file-info-item .info-value {
             word-break: break-all;
-            color: var(--text-color);
         }
         
         /* 進度顯示區域 */
@@ -203,7 +195,7 @@
             height: 25px;
             margin-bottom: 10px;
             border-radius: 50px;
-            background-color: var(--lighter-color);
+            background-color: #e9ecef;
         }
         
         .progress-bar {
@@ -229,11 +221,11 @@
         }
         
         .upload-btn:hover {
-            background-color: var(--success-hover);
+            background-color: #157347;
         }
         
         .upload-btn:disabled {
-            background-color: var(--text-muted);
+            background-color: #6c757d;
             cursor: not-allowed;
         }
         
@@ -248,18 +240,6 @@
             border-radius: 8px;
         }
         
-        .alert-success {
-            background-color: rgba(0, 180, 166, 0.2);
-            border: 1px solid rgba(0, 180, 166, 0.4);
-            color: var(--text-color);
-        }
-        
-        .alert-danger {
-            background-color: rgba(255, 89, 94, 0.2);
-            border: 1px solid rgba(255, 89, 94, 0.4);
-            color: var(--text-color);
-        }
-        
         /* 結果顯示區域 */
         .result-section {
             margin-top: 30px;
@@ -267,16 +247,7 @@
         }
         
         .result-section .card {
-            background-color: var(--light-color);
             border-left: 5px solid var(--success-color);
-            color: var(--text-color);
-            border-top: 1px solid var(--border-color);
-            border-right: 1px solid var(--border-color);
-            border-bottom: 1px solid var(--border-color);
-        }
-        
-        .result-section .card-body {
-            padding: 20px;
         }
         
         .result-link {
@@ -290,7 +261,6 @@
         
         .result-link:hover {
             text-decoration: underline;
-            color: var(--primary-hover);
         }
         
         .result-link i {
@@ -305,7 +275,7 @@
         }
         
         .loader {
-            border: 5px solid var(--light-color);
+            border: 5px solid #f3f3f3;
             border-top: 5px solid var(--primary-color);
             border-radius: 50%;
             width: 50px;
@@ -319,120 +289,68 @@
             100% { transform: rotate(360deg); }
         }
         
-        /* 按鈕樣式 */
-        .btn-primary {
-            background-color: var(--primary-color);
-            border-color: var(--primary-color);
-            color: white;
+        /* 上傳歷史記錄區域 */
+        .history-section {
+            margin-top: 40px;
         }
         
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-            border-color: var(--primary-hover);
+        .history-section h3 {
+            margin-bottom: 20px;
+            color: var(--dark-color);
+            display: flex;
+            align-items: center;
         }
         
-        .btn-outline-primary {
+        .history-section h3 i {
+            margin-right: 10px;
             color: var(--primary-color);
-            border-color: var(--primary-color);
-            background-color: transparent;
         }
         
-        .btn-outline-primary:hover {
-            background-color: var(--primary-color);
-            color: white;
+        .history-empty {
+            text-align: center;
+            padding: 30px;
+            background-color: #f8f9fa;
+            border-radius: var(--border-radius);
+            color: #6c757d;
         }
         
-        .btn-outline-secondary {
-            color: var(--text-muted);
-            border-color: var(--border-color);
-            background-color: transparent;
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
         }
         
-        .btn-outline-secondary:hover {
-            background-color: var(--light-color);
-            color: var(--text-color);
+        .history-table th,
+        .history-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
         }
         
-        /* 表單元素 */
-        .form-control {
-            background-color: var(--lighter-color);
-            border-color: var(--border-color);
-            color: var(--text-color);
+        .history-table th {
+            background-color: #f8f9fa;
+            color: #495057;
+            font-weight: 600;
         }
         
-        .form-control:focus {
-            background-color: var(--lighter-color);
-            border-color: var(--primary-color);
-            color: var(--text-color);
-            box-shadow: 0 0 0 0.25rem rgba(58, 134, 255, 0.25);
+        .history-table tr:hover {
+            background-color: rgba(13, 110, 253, 0.05);
         }
         
-        .form-control:disabled, 
-        .form-control[readonly] {
-            background-color: var(--dark-color);
-            color: var(--text-muted);
+        .history-table .file-link {
+            color: var(--primary-color);
+            text-decoration: none;
         }
         
-        .form-label {
-            color: var(--text-color);
-        }
-        
-        .form-text {
-            color: var(--text-muted);
+        .history-table .file-link:hover {
+            text-decoration: underline;
         }
         
         /* 頁尾版權資訊 */
         .footer {
             text-align: center;
             margin-top: 40px;
-            color: var(--text-muted);
+            color: #6c757d;
             font-size: 0.9rem;
-        }
-        
-        /* 自定義樣式 */
-        .select-file-btn {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-        
-        .select-file-btn:hover {
-            background-color: var(--primary-hover);
-        }
-        
-        /* 成功和錯誤樣式 */
-        .text-success {
-            color: var(--success-color) !important;
-        }
-        
-        .text-danger {
-            color: var(--danger-color) !important;
-        }
-        
-        /* 徽章樣式 */
-        .badge {
-            padding: 0.5em 0.8em;
-            font-weight: 500;
-        }
-        
-        .bg-success {
-            background-color: var(--success-color) !important;
-        }
-        
-        .bg-danger {
-            background-color: var(--danger-color) !important;
-        }
-        
-        .bg-warning {
-            background-color: var(--warning-color) !important;
-            color: var(--dark-color) !important;
-        }
-        
-        .bg-secondary {
-            background-color: var(--border-color) !important;
         }
         
         /* 響應式設計調整 */
@@ -455,6 +373,18 @@
             
             .drop-zone h3 {
                 font-size: 18px;
+            }
+            
+            .history-table th:nth-child(3),
+            .history-table td:nth-child(3) {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .history-table th:nth-child(4),
+            .history-table td:nth-child(4) {
+                display: none;
             }
         }
     </style>
@@ -581,6 +511,40 @@
             </div>
         </div>
         
+        <!-- 上傳歷史記錄區塊 -->
+        <div id="history-section" class="main-card history-section">
+            <h3><i class="fas fa-history"></i> 上傳歷史記錄</h3>
+            <div id="history-content">
+                <div id="history-empty" class="history-empty">
+                    <i class="fas fa-inbox fa-3x mb-3 text-muted"></i>
+                    <p>目前尚無上傳記錄</p>
+                </div>
+                <div id="history-table-container" style="display: none;">
+                    <div class="table-responsive">
+                        <table class="history-table">
+                            <thead>
+                                <tr>
+                                    <th>上傳時間</th>
+                                    <th>檔案名稱</th>
+                                    <th>檔案類型</th>
+                                    <th>檔案大小</th>
+                                    <th>操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-table-body">
+                                <!-- 動態產生的歷史記錄將在此顯示 -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="text-center mt-3">
+                    <button id="refresh-history-btn" class="btn btn-outline-primary">
+                        <i class="fas fa-sync-alt"></i> 重新整理記錄
+                    </button>
+                </div>
+            </div>
+        </div>
+        
         <!-- 頁尾版權資訊 -->
         <div class="footer">
             <p>&copy; 2025 檔案上傳系統 | 使用 GitHub Pages 與 Google Apps Script</p>
@@ -597,9 +561,8 @@
          * 
          * 此腳本實現與 Google Apps Script 通訊的檔案上傳功能
          * 使用JSONP和表單重定向來繞過CORS限制
-         * 修正了上傳超時衝突問題
          * 
-         * @version 3.1.0
+         * @version 3.0.0
          * @author Claude
          * @date 2025-03-27
          */
@@ -672,7 +635,14 @@
                 errorMessage: document.getElementById('error-message'),
                 resultSection: document.getElementById('result-section'),
                 resultText: document.getElementById('result-text'),
-                resultLink: document.getElementById('result-link')
+                resultLink: document.getElementById('result-link'),
+                
+                // 歷史記錄相關元素
+                historySection: document.getElementById('history-section'),
+                historyEmpty: document.getElementById('history-empty'),
+                historyTableContainer: document.getElementById('history-table-container'),
+                historyTableBody: document.getElementById('history-table-body'),
+                refreshHistoryBtn: document.getElementById('refresh-history-btn')
             };
             
             /**
@@ -693,10 +663,7 @@
                 isUploading: false,
                 
                 // 上傳結果檢查計時器
-                uploadCheckTimer: null,
-                
-                // 上傳超時計時器
-                uploadTimeoutId: null
+                uploadCheckTimer: null
             };
             
             /**
@@ -716,6 +683,9 @@
                 
                 // 驗證 API 連接
                 checkApiConnection();
+                
+                // 載入上傳歷史記錄
+                loadUploadHistory();
                 
                 console.log('應用程式初始化完成');
             }
@@ -740,12 +710,6 @@
                             
                             // 獲取檔案URL
                             const fileUrl = urlParams.get('fileUrl') || '#';
-                            const fileId = urlParams.get('fileId') || null;
-                            
-                            // 更新上傳信息
-                            if (fileId) {
-                                uploadInfo.fileId = fileId;
-                            }
                             
                             // 模擬上傳成功
                             setTimeout(() => {
@@ -809,6 +773,9 @@
                 
                 // 上傳按鈕事件
                 UI.uploadBtn.addEventListener('click', handleUpload);
+                
+                // 刷新歷史記錄按鈕事件
+                UI.refreshHistoryBtn.addEventListener('click', loadUploadHistory);
                 
                 // 點擊拖放區域選擇檔案
                 UI.dropZone.addEventListener('click', function() {
@@ -1204,90 +1171,31 @@
                         if (urlParams.get('upload_success') === 'true' && urlParams.get('id') === uploadId) {
                             // 參數已更新，處理已在handleRedirectParams中
                         } else {
-                            // 檢查localStorage中的標記
-                            const uploadInfo = JSON.parse(localStorage.getItem(AppConfig.storageKeys.currentUpload)) || {};
-                            const hasSuccessFlag = uploadInfo.success === true;
+                            // 窗口關閉但無重定向，可能是用戶取消
+                            handleUploadError('上傳已取消或發生錯誤');
                             
-                            if (hasSuccessFlag && uploadInfo.fileUrl) {
-                                // 檢測到localStorage中的成功標記
-                                handleUploadSuccess({
-                                    success: true,
-                                    fileName: uploadInfo.fileName,
-                                    fileUrl: uploadInfo.fileUrl,
-                                    message: '檔案上傳成功（從本地存儲恢復）',
-                                    timestamp: new Date().toISOString()
-                                });
-                                
-                                // 清除本地存儲
-                                localStorage.removeItem(AppConfig.storageKeys.currentUpload);
-                            } else {
-                                // 窗口關閉但無重定向，可能是用戶取消
-                                handleUploadError('上傳已取消或發生錯誤');
-                                
-                                // 清除本地存儲
-                                localStorage.removeItem(AppConfig.storageKeys.currentUpload);
-                            }
+                            // 清除本地存儲
+                            localStorage.removeItem(AppConfig.storageKeys.currentUpload);
                         }
                     }
                 }, 1000);
                 
-                // 延長超時時間，並檢查多個信號源
-                AppState.uploadTimeoutId = setTimeout(() => {
+                // 30秒後自動取消檢查
+                setTimeout(() => {
                     if (AppState.uploadCheckTimer) {
                         clearInterval(AppState.uploadCheckTimer);
                         
-                        // 檢查多種可能的成功信號
+                        // 檢查是否已成功
                         const urlParams = new URLSearchParams(window.location.search);
-                        const isSuccessInUrl = urlParams.get('upload_success') === 'true';
-                        const isCorrectIdInUrl = urlParams.get('id') === uploadId;
-                        
-                        // 檢查upload window狀態
-                        const isWindowClosed = uploadWindow && uploadWindow.closed;
-                        
-                        // 檢查localStorage中的標記
-                        const uploadInfo = JSON.parse(localStorage.getItem(AppConfig.storageKeys.currentUpload)) || {};
-                        const hasSuccessFlag = uploadInfo.success === true;
-                        
-                        // 只有當所有信號都表明失敗時才判定為超時
-                        if (!(isSuccessInUrl && isCorrectIdInUrl) && 
-                            !hasSuccessFlag &&
-                            isWindowClosed) {
-                            
-                            // 檢查是否有文件ID存在（可能是上傳成功但未正確返回）
-                            if (uploadInfo.fileId) {
-                                // 如果有文件ID，可能是上傳成功但返回失敗
-                                console.log('檢測到可能的部分成功上傳，嘗試處理為成功');
-                                
-                                handleUploadSuccess({
-                                    success: true,
-                                    fileName: uploadInfo.fileName,
-                                    fileUrl: uploadInfo.fileUrl || '#',
-                                    message: '檔案上傳已完成，但返回過程中斷',
-                                    timestamp: new Date().toISOString()
-                                });
-                                
-                                localStorage.removeItem(AppConfig.storageKeys.currentUpload);
-                                return;
-                            }
-                            
-                            // 確認為真正的超時失敗
+                        if (!(urlParams.get('upload_success') === 'true' && urlParams.get('id') === uploadId)) {
+                            // 未成功且超時
                             handleUploadError('上傳逾時，請稍後再試');
                             
                             // 清除本地存儲
                             localStorage.removeItem(AppConfig.storageKeys.currentUpload);
                         }
                     }
-                }, 60000); // 將超時時間延長到60秒
-            }
-            
-            /**
-             * 清除上傳超時計時器
-             */
-            function clearUploadTimeout() {
-                if (AppState.uploadTimeoutId) {
-                    clearTimeout(AppState.uploadTimeoutId);
-                    AppState.uploadTimeoutId = null;
-                }
+                }, 30000);
             }
             
             /**
@@ -1332,9 +1240,6 @@
              * @param {Object} data - 成功回應資料
              */
             function handleUploadSuccess(data) {
-                // 清除超時計時器
-                clearUploadTimeout();
-                
                 // 清除進度模擬
                 if (AppState.progressInterval) {
                     clearInterval(AppState.progressInterval);
@@ -1361,6 +1266,9 @@
                     UI.resultSection.style.display = 'block';
                 }
                 
+                // 重新載入上傳歷史
+                setTimeout(loadUploadHistory, 1000);
+                
                 // 延遲重置 UI
                 setTimeout(resetUploadUI, 2000);
                 
@@ -1373,9 +1281,6 @@
              * @param {string} errorMsg - 錯誤訊息
              */
             function handleUploadError(errorMsg) {
-                // 清除超時計時器
-                clearUploadTimeout();
-                
                 // 清除進度模擬
                 if (AppState.progressInterval) {
                     clearInterval(AppState.progressInterval);
@@ -1439,6 +1344,120 @@
             function resetAlerts() {
                 UI.successAlert.style.display = 'none';
                 UI.errorAlert.style.display = 'none';
+            }
+            
+            /**
+             * 使用JSONP加載上傳歷史記錄 (繞過CORS限制)
+             */
+            function loadUploadHistory() {
+                // 顯示載入指示器
+                UI.loaderContainer.style.display = 'block';
+                
+                // 創建唯一的回調函數名稱
+                const callbackName = 'historyCallback_' + Math.random().toString(36).substring(2, 15);
+                
+                // 設置全局回調函數
+                window[callbackName] = function(response) {
+                    console.log('歷史記錄載入成功:', response);
+                    displayUploadHistory(response);
+                    
+                    // 隱藏載入指示器
+                    UI.loaderContainer.style.display = 'none';
+                    
+                    // 清理回調函數
+                    delete window[callbackName];
+                };
+                
+                // 創建script標籤來執行JSONP請求
+                const script = document.createElement('script');
+                script.src = `${AppConfig.apiUrl}?callback=${callbackName}&action=getHistory`;
+                
+                // 設置超時處理
+                const timeoutId = setTimeout(function() {
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                    console.error('載入歷史記錄超時');
+                    UI.loaderContainer.style.display = 'none';
+                    
+                    // 顯示空歷史視圖
+                    UI.historyEmpty.style.display = 'block';
+                    UI.historyTableContainer.style.display = 'none';
+                    
+                    delete window[callbackName];
+                }, 10000); // 10秒超時
+                
+                // 處理加載錯誤
+                script.onerror = function() {
+                    clearTimeout(timeoutId);
+                    console.error('載入歷史記錄失敗');
+                    UI.loaderContainer.style.display = 'none';
+                    
+                    // 顯示空歷史視圖
+                    UI.historyEmpty.style.display = 'block';
+                    UI.historyTableContainer.style.display = 'none';
+                    
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                    delete window[callbackName];
+                };
+                
+                // 處理加載完成
+                script.onload = function() {
+                    clearTimeout(timeoutId);
+                };
+                
+                // 添加到DOM以執行請求
+                document.body.appendChild(script);
+            }
+            
+            /**
+             * 顯示上傳歷史記錄
+             * @param {Object} data - 歷史記錄資料
+             */
+            function displayUploadHistory(data) {
+                // 清空表格內容
+                UI.historyTableBody.innerHTML = '';
+                
+                if (data.success && data.records && data.records.length > 0) {
+                    // 有歷史記錄，顯示表格
+                    UI.historyEmpty.style.display = 'none';
+                    UI.historyTableContainer.style.display = 'block';
+                    
+                    // 按時間降序排列
+                    const sortedRecords = data.records.sort((a, b) => {
+                        return new Date(b.timestamp) - new Date(a.timestamp);
+                    });
+                    
+                    // 添加記錄到表格
+                    sortedRecords.forEach(record => {
+                        const row = document.createElement('tr');
+                        
+                        // 格式化時間
+                        const date = new Date(record.timestamp);
+                        const formattedDate = date.toLocaleString();
+                        
+                        // 構建表格行
+                        row.innerHTML = `
+                            <td>${formattedDate}</td>
+                            <td>${record.fileName}</td>
+                            <td>${record.fileType || '未知'}</td>
+                            <td>${typeof record.fileSize === 'number' ? formatFileSize(record.fileSize) : record.fileSize}</td>
+                            <td>
+                                <a href="${record.fileUrl}" target="_blank" class="file-link">
+                                    <i class="fas fa-external-link-alt"></i> 查看
+                                </a>
+                            </td>
+                        `;
+                        
+                        UI.historyTableBody.appendChild(row);
+                    });
+                } else {
+                    // 無歷史記錄，顯示空狀態
+                    UI.historyEmpty.style.display = 'block';
+                    UI.historyTableContainer.style.display = 'none';
+                }
             }
             
             // 初始化應用程式
