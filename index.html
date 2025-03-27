@@ -387,14 +387,6 @@
                 display: none;
             }
         }
-        
-        /* 隱藏的iframe */
-        #upload-frame, #history-frame {
-            display: none;
-            width: 0;
-            height: 0;
-            border: 0;
-        }
     </style>
 </head>
 <body>
@@ -559,24 +551,18 @@
         </div>
     </div>
     
-    <!-- 隱藏的iframe，用於接收上傳回應 -->
-    <iframe id="upload-frame" name="upload-frame"></iframe>
-    
-    <!-- 隱藏的iframe，用於接收歷史記錄 -->
-    <iframe id="history-frame" name="history-frame"></iframe>
-    
     <!-- 載入 Bootstrap 5 JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     
     <!-- 主要應用程式邏輯 -->
     <script>
         /**
-         * 檔案上傳系統 - 前端應用程式 (JSONP與IFRAME版本)
+         * 檔案上傳系統 - 前端應用程式 (無iframe版本)
          * 
          * 此腳本實現與 Google Apps Script 通訊的檔案上傳功能
-         * 使用JSONP和IFRAME表單來繞過CORS限制
+         * 使用JSONP和表單重定向來繞過CORS限制
          * 
-         * @version 2.0.0
+         * @version 3.0.0
          * @author Claude
          * @date 2025-03-27
          */
@@ -609,7 +595,8 @@
                 
                 // 本地儲存鍵名
                 storageKeys: {
-                    apiUrl: 'gas_api_url'
+                    apiUrl: 'gas_api_url',
+                    currentUpload: 'currentUpload'
                 }
             };
             
@@ -655,11 +642,7 @@
                 historyEmpty: document.getElementById('history-empty'),
                 historyTableContainer: document.getElementById('history-table-container'),
                 historyTableBody: document.getElementById('history-table-body'),
-                refreshHistoryBtn: document.getElementById('refresh-history-btn'),
-                
-                // iframe 元素
-                uploadFrame: document.getElementById('upload-frame'),
-                historyFrame: document.getElementById('history-frame')
+                refreshHistoryBtn: document.getElementById('refresh-history-btn')
             };
             
             /**
@@ -677,7 +660,10 @@
                 apiConnected: false,
                 
                 // 上傳狀態
-                isUploading: false
+                isUploading: false,
+                
+                // 上傳結果檢查計時器
+                uploadCheckTimer: null
             };
             
             /**
@@ -685,6 +671,9 @@
              */
             function initializeApp() {
                 console.log('初始化檔案上傳應用程式...');
+                
+                // 檢查URL參數，處理潛在的上傳重定向
+                handleRedirectParams();
                 
                 // 載入已儲存的 API URL
                 loadApiUrl();
@@ -699,6 +688,61 @@
                 loadUploadHistory();
                 
                 console.log('應用程式初始化完成');
+            }
+            
+            /**
+             * 處理URL重定向參數
+             */
+            function handleRedirectParams() {
+                const urlParams = new URLSearchParams(window.location.search);
+                
+                // 檢查上傳成功參數
+                if (urlParams.get('upload_success') === 'true') {
+                    // 獲取上傳ID
+                    const uploadId = urlParams.get('id');
+                    if (uploadId) {
+                        // 從localStorage獲取上傳信息
+                        const uploadInfo = JSON.parse(localStorage.getItem(AppConfig.storageKeys.currentUpload)) || {};
+                        
+                        if (uploadInfo.id === uploadId) {
+                            // 清除URL參數
+                            window.history.replaceState({}, document.title, window.location.pathname);
+                            
+                            // 獲取檔案URL
+                            const fileUrl = urlParams.get('fileUrl') || '#';
+                            
+                            // 模擬上傳成功
+                            setTimeout(() => {
+                                handleUploadSuccess({
+                                    success: true,
+                                    fileName: uploadInfo.fileName,
+                                    fileUrl: fileUrl,
+                                    message: '檔案上傳成功',
+                                    timestamp: new Date().toISOString()
+                                });
+                                
+                                // 清除本地存儲
+                                localStorage.removeItem(AppConfig.storageKeys.currentUpload);
+                            }, 500);
+                        }
+                    }
+                }
+                
+                // 檢查錯誤參數
+                if (urlParams.get('error')) {
+                    const errorMsg = urlParams.get('error');
+                    
+                    // 清除URL參數
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                    
+                    // 顯示錯誤信息
+                    setTimeout(() => {
+                        handleUploadError(decodeURIComponent(errorMsg));
+                        
+                        // 清除本地存儲
+                        localStorage.removeItem(AppConfig.storageKeys.currentUpload);
+                    }, 500);
+                }
             }
             
             /**
@@ -737,9 +781,6 @@
                 UI.dropZone.addEventListener('click', function() {
                     UI.fileInput.click();
                 });
-                
-                // 監聽iframe的訊息事件
-                window.addEventListener('message', handleIframeMessage);
             }
             
             /**
@@ -860,6 +901,11 @@
                         script.parentNode.removeChild(script);
                     }
                     delete window[callbackName];
+                };
+                
+                // 處理加載完成
+                script.onload = function() {
+                    clearTimeout(timeoutId);
                 };
                 
                 // 添加到DOM以執行請求
@@ -983,44 +1029,6 @@
             }
             
             /**
-             * 處理iframe傳回的訊息
-             * @param {MessageEvent} event - 訊息事件
-             */
-            function handleIframeMessage(event) {
-                // 確保訊息來源是合法的
-                try {
-                    const data = event.data;
-                    
-                    // 處理上傳回應
-                    if (data && (data.success === true || data.success === false)) {
-                        if (data.success) {
-                            console.log('上傳成功:', data);
-                            handleUploadSuccess(data);
-                        } else {
-                            console.error('上傳失敗:', data);
-                            handleUploadError(data.message || data.error || '未知錯誤');
-                        }
-                        
-                        // 隱藏載入指示器
-                        UI.loaderContainer.style.display = 'none';
-                        
-                        // 重設上傳狀態
-                        AppState.isUploading = false;
-                    }
-                    
-                    // 處理歷史記錄回應
-                    if (data && data.records !== undefined) {
-                        displayUploadHistory(data);
-                        
-                        // 隱藏載入指示器
-                        UI.loaderContainer.style.display = 'none';
-                    }
-                } catch (error) {
-                    console.error('處理iframe訊息時發生錯誤:', error);
-                }
-            }
-            
-            /**
              * 處理檔案上傳按鈕點擊
              */
             function handleUpload() {
@@ -1066,7 +1074,7 @@
                 const reader = new FileReader();
                 
                 reader.onload = function(e) {
-                    uploadFileViaIframe(AppState.selectedFile, e.target.result);
+                    uploadFileViaForm(AppState.selectedFile, e.target.result);
                 };
                 
                 reader.onerror = function() {
@@ -1077,11 +1085,11 @@
             }
             
             /**
-             * 使用iframe表單上傳檔案至GAS (繞過CORS限制)
+             * 使用表單重定向上傳檔案至GAS (繞過CORS限制)
              * @param {File} file - 要上傳的檔案
-             * @param {string} fileData - 檔案的Base64編碼數據
+             * @param {string} fileData - 檔案的Base64編碼資料
              */
-            function uploadFileViaIframe(file, fileData) {
+            function uploadFileViaForm(file, fileData) {
                 // 顯示上傳進度
                 startProgressSimulation();
                 
@@ -1089,6 +1097,18 @@
                 UI.loaderContainer.style.display = 'block';
                 
                 console.log('開始檔案上傳:', file.name);
+                
+                // 創建上傳ID
+                const uploadId = 'upload_' + new Date().getTime();
+                
+                // 存儲上傳信息到本地存儲
+                localStorage.setItem(AppConfig.storageKeys.currentUpload, JSON.stringify({
+                    id: uploadId,
+                    fileName: file.name,
+                    fileType: file.type || 'application/octet-stream',
+                    fileSize: file.size,
+                    timestamp: new Date().toISOString()
+                }));
                 
                 // 準備上傳數據
                 const uploadData = {
@@ -1102,7 +1122,6 @@
                 const form = document.createElement('form');
                 form.method = 'POST';
                 form.action = AppConfig.apiUrl;
-                form.target = 'upload-frame';
                 
                 // 添加JSON數據作為隱藏輸入
                 const dataInput = document.createElement('input');
@@ -1111,14 +1130,72 @@
                 dataInput.value = JSON.stringify(uploadData);
                 form.appendChild(dataInput);
                 
-                // 添加表單到文檔並提交
+                // 添加返回URL參數
+                const returnInput = document.createElement('input');
+                returnInput.type = 'hidden';
+                returnInput.name = 'return_url';
+                returnInput.value = window.location.href + '?upload_success=true&id=' + uploadId;
+                form.appendChild(returnInput);
+                
+                // 設置提交目標為新窗口
+                const windowName = 'upload_window_' + Math.random().toString(36).substring(2, 15);
+                form.target = windowName;
+                
+                // 添加表單到DOM並提交
                 document.body.appendChild(form);
+                
+                // 打開一個小窗口來接收表單提交
+                const uploadWindow = window.open('about:blank', windowName, 'width=200,height=100');
+                
+                // 提交表單
                 form.submit();
                 
                 // 提交後移除表單
-                setTimeout(function() {
+                setTimeout(() => {
                     document.body.removeChild(form);
+                }, 100);
+                
+                // 設置上傳檢查計時器
+                if (AppState.uploadCheckTimer) {
+                    clearInterval(AppState.uploadCheckTimer);
+                }
+                
+                // 每秒檢查一次URL參數變化
+                AppState.uploadCheckTimer = setInterval(() => {
+                    // 檢查窗口是否已關閉
+                    if (uploadWindow && uploadWindow.closed) {
+                        clearInterval(AppState.uploadCheckTimer);
+                        
+                        // 檢查URL參數是否已更新
+                        const urlParams = new URLSearchParams(window.location.search);
+                        if (urlParams.get('upload_success') === 'true' && urlParams.get('id') === uploadId) {
+                            // 參數已更新，處理已在handleRedirectParams中
+                        } else {
+                            // 窗口關閉但無重定向，可能是用戶取消
+                            handleUploadError('上傳已取消或發生錯誤');
+                            
+                            // 清除本地存儲
+                            localStorage.removeItem(AppConfig.storageKeys.currentUpload);
+                        }
+                    }
                 }, 1000);
+                
+                // 30秒後自動取消檢查
+                setTimeout(() => {
+                    if (AppState.uploadCheckTimer) {
+                        clearInterval(AppState.uploadCheckTimer);
+                        
+                        // 檢查是否已成功
+                        const urlParams = new URLSearchParams(window.location.search);
+                        if (!(urlParams.get('upload_success') === 'true' && urlParams.get('id') === uploadId)) {
+                            // 未成功且超時
+                            handleUploadError('上傳逾時，請稍後再試');
+                            
+                            // 清除本地存儲
+                            localStorage.removeItem(AppConfig.storageKeys.currentUpload);
+                        }
+                    }
+                }, 30000);
             }
             
             /**
@@ -1168,8 +1245,16 @@
                     clearInterval(AppState.progressInterval);
                 }
                 
+                // 清除上傳檢查計時器
+                if (AppState.uploadCheckTimer) {
+                    clearInterval(AppState.uploadCheckTimer);
+                }
+                
                 // 完成進度條
                 updateProgress(100, '上傳完成！');
+                
+                // 隱藏載入指示器
+                UI.loaderContainer.style.display = 'none';
                 
                 // 顯示成功訊息
                 showAlert('檔案已成功上傳！', 'success');
@@ -1186,6 +1271,9 @@
                 
                 // 延遲重置 UI
                 setTimeout(resetUploadUI, 2000);
+                
+                // 重設上傳狀態
+                AppState.isUploading = false;
             }
             
             /**
@@ -1198,14 +1286,25 @@
                     clearInterval(AppState.progressInterval);
                 }
                 
+                // 清除上傳檢查計時器
+                if (AppState.uploadCheckTimer) {
+                    clearInterval(AppState.uploadCheckTimer);
+                }
+                
                 // 重置進度條
                 updateProgress(0, '上傳失敗');
+                
+                // 隱藏載入指示器
+                UI.loaderContainer.style.display = 'none';
                 
                 // 顯示錯誤訊息
                 showAlert('上傳失敗: ' + errorMsg, 'error');
                 
                 // 重置 UI
                 resetUploadUI();
+                
+                // 重設上傳狀態
+                AppState.isUploading = false;
             }
             
             /**
@@ -1248,39 +1347,69 @@
             }
             
             /**
-             * 使用iframe加載上傳歷史記錄 (繞過CORS限制)
+             * 使用JSONP加載上傳歷史記錄 (繞過CORS限制)
              */
             function loadUploadHistory() {
                 // 顯示載入指示器
                 UI.loaderContainer.style.display = 'block';
                 
-                // 創建表單
-                const form = document.createElement('form');
-                form.method = 'GET';
-                form.action = `${AppConfig.apiUrl}?action=getHistory`;
-                form.target = 'history-frame';
+                // 創建唯一的回調函數名稱
+                const callbackName = 'historyCallback_' + Math.random().toString(36).substring(2, 15);
                 
-                // 添加表單到文檔並提交
-                document.body.appendChild(form);
-                form.submit();
+                // 設置全局回調函數
+                window[callbackName] = function(response) {
+                    console.log('歷史記錄載入成功:', response);
+                    displayUploadHistory(response);
+                    
+                    // 隱藏載入指示器
+                    UI.loaderContainer.style.display = 'none';
+                    
+                    // 清理回調函數
+                    delete window[callbackName];
+                };
                 
-                // 提交後移除表單
-                setTimeout(function() {
-                    document.body.removeChild(form);
-                }, 1000);
+                // 創建script標籤來執行JSONP請求
+                const script = document.createElement('script');
+                script.src = `${AppConfig.apiUrl}?callback=${callbackName}&action=getHistory`;
                 
                 // 設置超時處理
-                setTimeout(function() {
-                    if (UI.loaderContainer.style.display !== 'none') {
-                        UI.loaderContainer.style.display = 'none';
-                        
-                        // 顯示空歷史視圖
-                        UI.historyEmpty.style.display = 'block';
-                        UI.historyTableContainer.style.display = 'none';
-                        
-                        console.error('載入歷史記錄超時');
+                const timeoutId = setTimeout(function() {
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
                     }
+                    console.error('載入歷史記錄超時');
+                    UI.loaderContainer.style.display = 'none';
+                    
+                    // 顯示空歷史視圖
+                    UI.historyEmpty.style.display = 'block';
+                    UI.historyTableContainer.style.display = 'none';
+                    
+                    delete window[callbackName];
                 }, 10000); // 10秒超時
+                
+                // 處理加載錯誤
+                script.onerror = function() {
+                    clearTimeout(timeoutId);
+                    console.error('載入歷史記錄失敗');
+                    UI.loaderContainer.style.display = 'none';
+                    
+                    // 顯示空歷史視圖
+                    UI.historyEmpty.style.display = 'block';
+                    UI.historyTableContainer.style.display = 'none';
+                    
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                    delete window[callbackName];
+                };
+                
+                // 處理加載完成
+                script.onload = function() {
+                    clearTimeout(timeoutId);
+                };
+                
+                // 添加到DOM以執行請求
+                document.body.appendChild(script);
             }
             
             /**
