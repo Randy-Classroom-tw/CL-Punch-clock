@@ -562,7 +562,7 @@
          * 此腳本實現與 Google Apps Script 通訊的檔案上傳功能
          * 包含檔案選擇、驗證、上傳、進度顯示和錯誤處理等功能
          * 
-         * @version 1.0.0
+         * @version 2.0.0
          * @author Claude
          * @date 2025-03-27
          */
@@ -796,28 +796,74 @@
             }
             
             /**
+             * 解析從HtmlService返回的回應
+             * 從HTML頁面中提取JSON資料
+             * 
+             * @param {Response} response - fetch API的回應物件
+             * @returns {Promise<any>} 解析後的JSON資料
+             */
+            async function parseGasResponse(response) {
+                // 檢查回應狀態
+                if (!response.ok) {
+                    throw new Error(`API回應異常: ${response.status}`);
+                }
+                
+                // 獲取回應文本
+                const htmlText = await response.text();
+                
+                try {
+                    // 嘗試直接解析為JSON (如果後端使用ContentService)
+                    return JSON.parse(htmlText);
+                } catch (e) {
+                    // 如果直接解析失敗，嘗試從HTML中提取JSON
+                    try {
+                        // 使用正則表達式從HTML <body> 標籤中提取JSON
+                        const bodyMatch = htmlText.match(/<body>([\s\S]*?)<\/body>/i);
+                        if (bodyMatch && bodyMatch[1]) {
+                            // 提取並解析body中的內容為JSON
+                            return JSON.parse(bodyMatch[1].trim());
+                        }
+                        
+                        // 如果沒有找到body標籤但內容看起來像HTML
+                        if (htmlText.includes('<!DOCTYPE html>') || htmlText.includes('<html>')) {
+                            console.warn('回應是HTML格式但無法提取JSON資料');
+                            throw new Error('無法從API回應中提取JSON資料');
+                        }
+                        
+                        // 最後嘗試，直接解析整個內容
+                        return JSON.parse(htmlText);
+                    } catch (innerError) {
+                        console.error('解析API回應失敗:', innerError);
+                        console.log('原始回應內容:', htmlText);
+                        throw new Error('API回應格式不正確');
+                    }
+                }
+            }
+            
+            /**
              * 檢查 API 連接狀態
              */
             function checkApiConnection() {
                 updateApiStatus('checking');
                 
-                fetch(AppConfig.apiUrl)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('API 回應異常');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        console.log('API 連接成功:', data);
-                        AppState.apiConnected = true;
-                        updateApiStatus('connected');
-                    })
-                    .catch(error => {
-                        console.error('API 連接失敗:', error);
-                        AppState.apiConnected = false;
-                        updateApiStatus('error');
-                    });
+                fetch(AppConfig.apiUrl, {
+                    method: 'GET',
+                    mode: 'cors', // 明確指定CORS模式
+                    headers: {
+                        'Accept': 'application/json, text/html'
+                    }
+                })
+                .then(response => parseGasResponse(response))
+                .then(data => {
+                    console.log('API 連接成功:', data);
+                    AppState.apiConnected = true;
+                    updateApiStatus('connected');
+                })
+                .catch(error => {
+                    console.error('API 連接失敗:', error);
+                    AppState.apiConnected = false;
+                    updateApiStatus('error');
+                });
             }
             
             /**
@@ -1018,16 +1064,13 @@
                 fetch(AppConfig.apiUrl, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json, text/html'
                     },
+                    mode: 'cors', // 明確指定CORS模式
                     body: JSON.stringify(uploadData)
                 })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Network response was not ok: ${response.status}`);
-                    }
-                    return response.json();
-                })
+                .then(response => parseGasResponse(response))
                 .then(data => {
                     console.log('上傳成功:', data);
                     handleUploadSuccess(data);
@@ -1181,27 +1224,28 @@
                 // 添加歷史記錄查詢參數
                 const historyUrl = `${AppConfig.apiUrl}?action=getHistory`;
                 
-                fetch(historyUrl)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error('獲取歷史記錄失敗');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        displayUploadHistory(data);
-                    })
-                    .catch(error => {
-                        console.error('載入歷史記錄失敗:', error);
-                        
-                        // 顯示空歷史視圖
-                        UI.historyEmpty.style.display = 'block';
-                        UI.historyTableContainer.style.display = 'none';
-                    })
-                    .finally(() => {
-                        // 隱藏載入指示器
-                        UI.loaderContainer.style.display = 'none';
-                    });
+                fetch(historyUrl, {
+                    method: 'GET',
+                    mode: 'cors', // 明確指定CORS模式
+                    headers: {
+                        'Accept': 'application/json, text/html'
+                    }
+                })
+                .then(response => parseGasResponse(response))
+                .then(data => {
+                    displayUploadHistory(data);
+                })
+                .catch(error => {
+                    console.error('載入歷史記錄失敗:', error);
+                    
+                    // 顯示空歷史視圖
+                    UI.historyEmpty.style.display = 'block';
+                    UI.historyTableContainer.style.display = 'none';
+                })
+                .finally(() => {
+                    // 隱藏載入指示器
+                    UI.loaderContainer.style.display = 'none';
+                });
             }
             
             /**
