@@ -387,6 +387,14 @@
                 display: none;
             }
         }
+        
+        /* 隱藏的iframe */
+        #upload-frame, #history-frame {
+            display: none;
+            width: 0;
+            height: 0;
+            border: 0;
+        }
     </style>
 </head>
 <body>
@@ -551,16 +559,22 @@
         </div>
     </div>
     
+    <!-- 隱藏的iframe，用於接收上傳回應 -->
+    <iframe id="upload-frame" name="upload-frame"></iframe>
+    
+    <!-- 隱藏的iframe，用於接收歷史記錄 -->
+    <iframe id="history-frame" name="history-frame"></iframe>
+    
     <!-- 載入 Bootstrap 5 JS -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
     
     <!-- 主要應用程式邏輯 -->
     <script>
         /**
-         * 檔案上傳系統 - 前端應用程式
+         * 檔案上傳系統 - 前端應用程式 (JSONP與IFRAME版本)
          * 
          * 此腳本實現與 Google Apps Script 通訊的檔案上傳功能
-         * 包含檔案選擇、驗證、上傳、進度顯示和錯誤處理等功能
+         * 使用JSONP和IFRAME表單來繞過CORS限制
          * 
          * @version 2.0.0
          * @author Claude
@@ -641,7 +655,11 @@
                 historyEmpty: document.getElementById('history-empty'),
                 historyTableContainer: document.getElementById('history-table-container'),
                 historyTableBody: document.getElementById('history-table-body'),
-                refreshHistoryBtn: document.getElementById('refresh-history-btn')
+                refreshHistoryBtn: document.getElementById('refresh-history-btn'),
+                
+                // iframe 元素
+                uploadFrame: document.getElementById('upload-frame'),
+                historyFrame: document.getElementById('history-frame')
             };
             
             /**
@@ -719,6 +737,9 @@
                 UI.dropZone.addEventListener('click', function() {
                     UI.fileInput.click();
                 });
+                
+                // 監聽iframe的訊息事件
+                window.addEventListener('message', handleIframeMessage);
             }
             
             /**
@@ -796,74 +817,53 @@
             }
             
             /**
-             * 解析從HtmlService返回的回應
-             * 從HTML頁面中提取JSON資料
-             * 
-             * @param {Response} response - fetch API的回應物件
-             * @returns {Promise<any>} 解析後的JSON資料
-             */
-            async function parseGasResponse(response) {
-                // 檢查回應狀態
-                if (!response.ok) {
-                    throw new Error(`API回應異常: ${response.status}`);
-                }
-                
-                // 獲取回應文本
-                const htmlText = await response.text();
-                
-                try {
-                    // 嘗試直接解析為JSON (如果後端使用ContentService)
-                    return JSON.parse(htmlText);
-                } catch (e) {
-                    // 如果直接解析失敗，嘗試從HTML中提取JSON
-                    try {
-                        // 使用正則表達式從HTML <body> 標籤中提取JSON
-                        const bodyMatch = htmlText.match(/<body>([\s\S]*?)<\/body>/i);
-                        if (bodyMatch && bodyMatch[1]) {
-                            // 提取並解析body中的內容為JSON
-                            return JSON.parse(bodyMatch[1].trim());
-                        }
-                        
-                        // 如果沒有找到body標籤但內容看起來像HTML
-                        if (htmlText.includes('<!DOCTYPE html>') || htmlText.includes('<html>')) {
-                            console.warn('回應是HTML格式但無法提取JSON資料');
-                            throw new Error('無法從API回應中提取JSON資料');
-                        }
-                        
-                        // 最後嘗試，直接解析整個內容
-                        return JSON.parse(htmlText);
-                    } catch (innerError) {
-                        console.error('解析API回應失敗:', innerError);
-                        console.log('原始回應內容:', htmlText);
-                        throw new Error('API回應格式不正確');
-                    }
-                }
-            }
-            
-            /**
-             * 檢查 API 連接狀態
+             * 使用JSONP檢查 API 連接狀態 (避免CORS問題)
              */
             function checkApiConnection() {
                 updateApiStatus('checking');
                 
-                fetch(AppConfig.apiUrl, {
-                    method: 'GET',
-                    mode: 'cors', // 明確指定CORS模式
-                    headers: {
-                        'Accept': 'application/json, text/html'
-                    }
-                })
-                .then(response => parseGasResponse(response))
-                .then(data => {
-                    console.log('API 連接成功:', data);
+                // 創建唯一的回調函數名稱
+                const callbackName = 'apiCallback_' + Math.random().toString(36).substring(2, 15);
+                
+                // 設置全局回調函數
+                window[callbackName] = function(response) {
+                    console.log('API 連接成功:', response);
                     AppState.apiConnected = true;
                     updateApiStatus('connected');
-                })
-                .catch(error => {
-                    console.error('API 連接失敗:', error);
+                    
+                    // 清理回調函數
+                    delete window[callbackName];
+                };
+                
+                // 創建script標籤來執行JSONP請求
+                const script = document.createElement('script');
+                script.src = `${AppConfig.apiUrl}?callback=${callbackName}&action=ping`;
+                
+                // 設置超時處理
+                const timeoutId = setTimeout(function() {
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                    console.error('API 連接超時');
                     AppState.apiConnected = false;
                     updateApiStatus('error');
-                });
+                    delete window[callbackName];
+                }, 10000); // 10秒超時
+                
+                // 處理加載錯誤
+                script.onerror = function() {
+                    clearTimeout(timeoutId);
+                    console.error('API 連接失敗');
+                    AppState.apiConnected = false;
+                    updateApiStatus('error');
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                    delete window[callbackName];
+                };
+                
+                // 添加到DOM以執行請求
+                document.body.appendChild(script);
             }
             
             /**
@@ -983,6 +983,44 @@
             }
             
             /**
+             * 處理iframe傳回的訊息
+             * @param {MessageEvent} event - 訊息事件
+             */
+            function handleIframeMessage(event) {
+                // 確保訊息來源是合法的
+                try {
+                    const data = event.data;
+                    
+                    // 處理上傳回應
+                    if (data && (data.success === true || data.success === false)) {
+                        if (data.success) {
+                            console.log('上傳成功:', data);
+                            handleUploadSuccess(data);
+                        } else {
+                            console.error('上傳失敗:', data);
+                            handleUploadError(data.message || data.error || '未知錯誤');
+                        }
+                        
+                        // 隱藏載入指示器
+                        UI.loaderContainer.style.display = 'none';
+                        
+                        // 重設上傳狀態
+                        AppState.isUploading = false;
+                    }
+                    
+                    // 處理歷史記錄回應
+                    if (data && data.records !== undefined) {
+                        displayUploadHistory(data);
+                        
+                        // 隱藏載入指示器
+                        UI.loaderContainer.style.display = 'none';
+                    }
+                } catch (error) {
+                    console.error('處理iframe訊息時發生錯誤:', error);
+                }
+            }
+            
+            /**
              * 處理檔案上傳按鈕點擊
              */
             function handleUpload() {
@@ -1028,7 +1066,7 @@
                 const reader = new FileReader();
                 
                 reader.onload = function(e) {
-                    uploadFileToGas(AppState.selectedFile, e.target.result);
+                    uploadFileViaIframe(AppState.selectedFile, e.target.result);
                 };
                 
                 reader.onerror = function() {
@@ -1039,19 +1077,11 @@
             }
             
             /**
-             * 上傳檔案至 Google Apps Script
+             * 使用iframe表單上傳檔案至GAS (繞過CORS限制)
              * @param {File} file - 要上傳的檔案
-             * @param {string} fileData - 檔案的 Base64 編碼資料
+             * @param {string} fileData - 檔案的Base64編碼數據
              */
-            function uploadFileToGas(file, fileData) {
-                // 準備上傳資料
-                const uploadData = {
-                    fileName: file.name,
-                    fileType: file.type || 'application/octet-stream',
-                    fileData: fileData,
-                    timestamp: new Date().toISOString()
-                };
-                
+            function uploadFileViaIframe(file, fileData) {
                 // 顯示上傳進度
                 startProgressSimulation();
                 
@@ -1060,32 +1090,35 @@
                 
                 console.log('開始檔案上傳:', file.name);
                 
-                // 發送 API 請求
-                fetch(AppConfig.apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json, text/html'
-                    },
-                    mode: 'cors', // 明確指定CORS模式
-                    body: JSON.stringify(uploadData)
-                })
-                .then(response => parseGasResponse(response))
-                .then(data => {
-                    console.log('上傳成功:', data);
-                    handleUploadSuccess(data);
-                })
-                .catch(error => {
-                    console.error('上傳失敗:', error);
-                    handleUploadError(error.message);
-                })
-                .finally(() => {
-                    // 隱藏載入指示器
-                    UI.loaderContainer.style.display = 'none';
-                    
-                    // 重設上傳狀態
-                    AppState.isUploading = false;
-                });
+                // 準備上傳數據
+                const uploadData = {
+                    fileName: file.name,
+                    fileType: file.type || 'application/octet-stream',
+                    fileData: fileData,
+                    timestamp: new Date().toISOString()
+                };
+                
+                // 創建表單
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = AppConfig.apiUrl;
+                form.target = 'upload-frame';
+                
+                // 添加JSON數據作為隱藏輸入
+                const dataInput = document.createElement('input');
+                dataInput.type = 'hidden';
+                dataInput.name = 'data';
+                dataInput.value = JSON.stringify(uploadData);
+                form.appendChild(dataInput);
+                
+                // 添加表單到文檔並提交
+                document.body.appendChild(form);
+                form.submit();
+                
+                // 提交後移除表單
+                setTimeout(function() {
+                    document.body.removeChild(form);
+                }, 1000);
             }
             
             /**
@@ -1215,37 +1248,39 @@
             }
             
             /**
-             * 載入上傳歷史記錄
+             * 使用iframe加載上傳歷史記錄 (繞過CORS限制)
              */
             function loadUploadHistory() {
                 // 顯示載入指示器
                 UI.loaderContainer.style.display = 'block';
                 
-                // 添加歷史記錄查詢參數
-                const historyUrl = `${AppConfig.apiUrl}?action=getHistory`;
+                // 創建表單
+                const form = document.createElement('form');
+                form.method = 'GET';
+                form.action = `${AppConfig.apiUrl}?action=getHistory`;
+                form.target = 'history-frame';
                 
-                fetch(historyUrl, {
-                    method: 'GET',
-                    mode: 'cors', // 明確指定CORS模式
-                    headers: {
-                        'Accept': 'application/json, text/html'
+                // 添加表單到文檔並提交
+                document.body.appendChild(form);
+                form.submit();
+                
+                // 提交後移除表單
+                setTimeout(function() {
+                    document.body.removeChild(form);
+                }, 1000);
+                
+                // 設置超時處理
+                setTimeout(function() {
+                    if (UI.loaderContainer.style.display !== 'none') {
+                        UI.loaderContainer.style.display = 'none';
+                        
+                        // 顯示空歷史視圖
+                        UI.historyEmpty.style.display = 'block';
+                        UI.historyTableContainer.style.display = 'none';
+                        
+                        console.error('載入歷史記錄超時');
                     }
-                })
-                .then(response => parseGasResponse(response))
-                .then(data => {
-                    displayUploadHistory(data);
-                })
-                .catch(error => {
-                    console.error('載入歷史記錄失敗:', error);
-                    
-                    // 顯示空歷史視圖
-                    UI.historyEmpty.style.display = 'block';
-                    UI.historyTableContainer.style.display = 'none';
-                })
-                .finally(() => {
-                    // 隱藏載入指示器
-                    UI.loaderContainer.style.display = 'none';
-                });
+                }, 10000); // 10秒超時
             }
             
             /**
