@@ -1180,7 +1180,7 @@
                     }
                 }, 1000);
                 
-                // 30秒後自動取消檢查
+                // 90秒後自動取消檢查
                 setTimeout(() => {
                     if (AppState.uploadCheckTimer) {
                         clearInterval(AppState.uploadCheckTimer);
@@ -1195,7 +1195,7 @@
                             localStorage.removeItem(AppConfig.storageKeys.currentUpload);
                         }
                     }
-                }, 30000);
+                }, 90000);
             }
             
             /**
