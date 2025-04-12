@@ -506,8 +506,8 @@
      * 此腳本實現與 Google Apps Script 通訊的檔案上傳功能
      * 使用多通道通信機制確保上傳狀態可靠同步
      * 
-     * @version 6.0.0
-     * @date 2025-04-13
+     * @version 5.0.0
+     * @date 2025-04-12
      */
     
     // 使用立即執行函數表達式 (IIFE) 建立模組化程式
@@ -715,7 +715,6 @@
         
         /**
          * 設定全局消息監聽器
-         * 處理來自上傳窗口的消息通信
          */
         function setupGlobalMessageListener() {
             // 如果已有監聽器，先移除
@@ -727,73 +726,27 @@
             window.messageHandler = function(event) {
                 // 處理來自上傳窗口的消息
                 try {
-                    console.log("[上傳系統] 收到窗口消息:", event.data);
+                    console.log("收到窗口消息:", event.data);
                     
                     const data = event.data;
-                    // 驗證消息格式
+                    // 簡單驗證消息格式
                     if (data && data.status && data.uploadId) {
                         // 檢查是否是當前上傳的ID
                         if (data.uploadId === AppState.currentUploadId) {
                             if (data.status === 'success' && data.fileUrl) {
-                                console.log("[上傳系統] 收到成功消息, 檔案URL:", data.fileUrl);
-                                
-                                // 清除所有計時器
-                                if (AppState.progressInterval) {
-                                    clearInterval(AppState.progressInterval);
-                                    AppState.progressInterval = null;
-                                }
-                                
-                                if (AppState.uploadCheckTimer) {
-                                    clearTimeout(AppState.uploadCheckTimer);
-                                    AppState.uploadCheckTimer = null;
-                                }
-                                
-                                // 處理上傳成功
-                                handleUploadSuccess({
-                                    success: true,
-                                    fileName: data.fileName || AppState.selectedFile.name,
-                                    fileUrl: data.fileUrl,
-                                    message: data.message || '檔案上傳成功',
-                                    timestamp: new Date().toISOString()
-                                });
-                                
-                                // 清除本地存儲
-                                localStorage.removeItem(AppConfig.storageKeys.currentUpload);
+                                clearPollingAndProcessSuccess(data.uploadId, data.fileUrl);
                             } else if (data.status === 'error') {
-                                console.log("[上傳系統] 收到錯誤消息:", data.message);
-                                
-                                // 清除所有計時器
-                                if (AppState.progressInterval) {
-                                    clearInterval(AppState.progressInterval);
-                                    AppState.progressInterval = null;
-                                }
-                                
-                                if (AppState.uploadCheckTimer) {
-                                    clearTimeout(AppState.uploadCheckTimer);
-                                    AppState.uploadCheckTimer = null;
-                                }
-                                
-                                // 處理上傳錯誤
-                                handleUploadError(data.message || '上傳過程中發生錯誤');
-                                
-                                // 清除本地存儲
-                                localStorage.removeItem(AppConfig.storageKeys.currentUpload);
+                                clearPollingAndProcessError(data.uploadId, data.message || '上傳過程中發生錯誤');
                             }
-                        } else {
-                            console.log("[上傳系統] 收到消息但ID不匹配, 忽略");
                         }
-                    } else {
-                        console.log("[上傳系統] 收到無效格式消息, 忽略");
                     }
                 } catch (e) {
-                    console.error("[上傳系統] 處理窗口消息時發生錯誤:", e);
+                    console.error("處理窗口消息時發生錯誤:", e);
                 }
             };
             
-            // 添加監聽器，並設置合適的安全選項
-            window.addEventListener('message', window.messageHandler, false);
-            
-            console.log("[上傳系統] 全局消息監聽器已設置");
+            // 添加監聽器
+            window.addEventListener('message', window.messageHandler);
         }
         
         /**
