@@ -1427,9 +1427,9 @@
 
 <script>
   /**
-   * @fileoverview AB辦公室出勤系統前端腳本 (完整版本)
+   * @fileoverview CL辦公室出勤系統前端腳本 (完整版本)
    * @version 1.0.14
-   * @author AB系統團隊
+   * @author CL系統團隊
    */
 
   /* ====================================
@@ -2039,7 +2039,7 @@
     API_TIMEOUT: 20000, // 從 15000 增加到 20000，適應多座標處理
     JSONP_RETRY_COUNT: 2,
     JSONP_RETRY_DELAY: 1000,
-    SCHEDULE_URL: 'https://docs.google.com/spreadsheets/d/1xUtml2Khb87YpPgHno3QH9che6QaGGAx8UPvnrUY6dg/edit?usp=sharing'
+    SCHEDULE_URL: 'https://docs.google.com/spreadsheets/d/1K0nri6KwPn22rR4Es1rHx1DxmmDMyAlPMm8vSuUAVso/edit?usp=sharing'
   };
 
   /**
@@ -2416,7 +2416,7 @@
     
     try {
       // 直接觸發公告連結開啟
-      const 公告連結 = 'https://drive.google.com/open?id=16XffhtvX0TCoVd8rT9Gt3MZJSA02Qj5tUKTCYuV6EeU&usp=drive_copy';
+      const 公告連結 = 'https://docs.google.com/document/d/11PSJPaj8bkLccpat4gtEb1EJyEaEtPGW5hT-Jlce6Oo/edit?usp=sharing';
       triggerAppLink(公告連結);
       UIUtils.displaySuccess("內部公告已在新視窗中打開");
       
@@ -5351,60 +5351,25 @@
       openNotice(elements.allButtons.btnNotice);
     });
 
-    // 表單按鈕點擊事件，加入驗證機制
+    // 表單按鈕點擊事件 - 維修中版本
     elements.allButtons.btnForm.addEventListener("click", async () => {
       // 設置操作狀態為進行中
       ButtonStateManager.setOperationStatus(true);
       UIUtils.disableAllButtons();
       
-      const idCode = elements.idInput.value;
+      // 直接顯示維修中訊息
+      UIUtils.displayError("表單系統維修中｜暫時無法使用");
       
-      if (!validateIdCode(idCode)) {
-        UIUtils.displayError("請鍵入完整的身分證後四碼");
-        UIUtils.startIndividualCooldown(elements.allButtons.btnForm, CONFIG.COOLDOWN_MS, elements.allButtons.btnForm.dataset.originalText);
-        UIUtils.enableAllButtonsExcept(elements.allButtons.btnForm);
-        ButtonStateManager.setOperationStatus(false);
-        return;
-      }
+      // 啟動按鈕冷卻
+      UIUtils.startIndividualCooldown(
+        elements.allButtons.btnForm, 
+        CONFIG.COOLDOWN_MS, 
+        elements.allButtons.btnForm.dataset.originalText
+      );
       
-      if (!navigator.onLine) {
-        UIUtils.displayError("請確認網路連線");
-        UIUtils.startIndividualCooldown(elements.allButtons.btnForm, CONFIG.COOLDOWN_MS, elements.allButtons.btnForm.dataset.originalText);
-        UIUtils.enableAllButtonsExcept(elements.allButtons.btnForm);
-        ButtonStateManager.setOperationStatus(false);
-        return;
-      }
-      
-      UIUtils.displayLoading("查詢中｜請稍候...");
-      
-      try {
-        // 呼叫API驗證後四碼是否在授權名單內
-        const result = await NetworkUtils.callGASWithRetry("checkDeviceBinding", [idCode]);
-        
-        if (result.status === "success") {
-          // 驗證成功，顯示表單選擇模態框
-          UIUtils.clearResponse();
-          showFormApplicationModal();
-          UIUtils.startIndividualCooldown(elements.allButtons.btnForm, CONFIG.COOLDOWN_MS, elements.allButtons.btnForm.dataset.originalText);
-        } else {
-          // ★ 新增 "AUTH.NOT_IN_AUTHLIST" 判斷
-          if (result.error === "AUTH.NOT_IN_AUTHLIST" || 
-              result.error === "AUTH.NOT_BOUND" || 
-              result.error === "AUTH.DEVICE_MISMATCH" || 
-              result.error === "AUTH.INVALID_USER") {
-            UIUtils.displayError("不在授權名單中: 申請失敗");
-          } else {
-            UIUtils.displayError(result.message || "驗證授權失敗");
-          }
-          UIUtils.startIndividualCooldown(elements.allButtons.btnForm, CONFIG.COOLDOWN_MS, elements.allButtons.btnForm.dataset.originalText);
-        }
-      } catch(err) {
-        UIUtils.displayError(`驗證授權失敗: ${err.message}`);
-        UIUtils.startIndividualCooldown(elements.allButtons.btnForm, CONFIG.COOLDOWN_MS, elements.allButtons.btnForm.dataset.originalText);
-      } finally {
-        UIUtils.enableAllButtonsExcept(elements.allButtons.btnForm);
-        ButtonStateManager.setOperationStatus(false);
-      }
+      // 重新啟用其他按鈕
+      UIUtils.enableAllButtonsExcept(elements.allButtons.btnForm);
+      ButtonStateManager.setOperationStatus(false);
     });
 
     // 點擊背景關閉表單選擇模態框
