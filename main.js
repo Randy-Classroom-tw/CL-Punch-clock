@@ -10,7 +10,7 @@ window.App = window.App || {};
     WEB_APP_URL: "https://script.google.com/macros/s/AKfycbz4NVCwXUKfd1sSr3QOWm7OdGyFxSNnoRVPCICJf05ISIRjTEbWr5x6idbp_OJmZ4Agyw/exec",
     COOLDOWN_MS: 5000,
     API_TIMEOUT: 30000,
-    DEVICE_ID_KEY: 'OS_DEVICE_ID',
+    DEVICE_ID_KEY: 'CL_DEVICE_ID',
     APP_VERSION: '19.9.8',
     SCHEDULE_URL: "https://docs.google.com/spreadsheets/d/15cZyUfRyQDYNBHb7DextI8bCLW94IpJxozTn7ksfzhY/edit?usp=sharing",  // 排班表
     NOTICE_URL: "https://docs.google.com/document/d/1UdNV82HQXdRQrf9y-3sdidfoKOVBx3D1fyCr0DXmfrg/edit?usp=sharing",    // 公告
