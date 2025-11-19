@@ -5,7 +5,7 @@ window.App = window.App || {};
 (function(App) {
   'use strict';
 
-  // SC辦公室出勤系統 UI模組 v2.0
+  // CL辦公室出勤系統 UI模組 v2.0
 
   // 系統配置策略
 
