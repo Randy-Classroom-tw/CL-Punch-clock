@@ -7,13 +7,13 @@ window.App = window.App || {};
 
   // 預設配置
   const DEFAULT_CONFIG = {
-    WEB_APP_URL: "https://script.google.com/macros/s/AKfycbyrIw_NFN3chyn3XAP5V7Ab3Z67zQJwoM56d5i7tJBB0B3rEVGsPJQBWAf0WEN74sz-/exec",
+    WEB_APP_URL: "https://script.google.com/macros/s/AKfycbz4NVCwXUKfd1sSr3QOWm7OdGyFxSNnoRVPCICJf05ISIRjTEbWr5x6idbp_OJmZ4Agyw/exec",
     COOLDOWN_MS: 5000,
     API_TIMEOUT: 30000,
     DEVICE_ID_KEY: 'OS_DEVICE_ID',
     APP_VERSION: '19.9.8',
-    SCHEDULE_URL: "https://docs.google.com/spreadsheets/d/1t53A0yNrRHUh35hqbS8nwsCiz8o0wkB0AdQs20i1mwc/edit?usp=sharing",  // 排班表
-    NOTICE_URL: "https://docs.google.com/document/d/1pASDU2UOVH3U9Wm4KfnZOMac5wI43XYHJ9uxtriwBCQ/edit?usp=sharing",    // 公告
+    SCHEDULE_URL: "https://docs.google.com/spreadsheets/d/15cZyUfRyQDYNBHb7DextI8bCLW94IpJxozTn7ksfzhY/edit?usp=sharing",  // 排班表
+    NOTICE_URL: "https://docs.google.com/document/d/1UdNV82HQXdRQrf9y-3sdidfoKOVBx3D1fyCr0DXmfrg/edit?usp=sharing",    // 公告
     CONSISTENCY_CHECK_INTERVAL: 30000,
     
     // 統一日期時間選擇器配置
